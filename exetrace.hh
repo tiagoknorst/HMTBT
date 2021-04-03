@@ -58,13 +58,30 @@ class ExeTracerRecord : public InstRecord
 
 
     void traceInst(const StaticInstPtr &inst, bool ran);
+
+    void getReg(const StaticInstPtr &inst, long long int dado, bool dsa);
     
-    void calculaEconomia(const StaticInstPtr &inst);
-    void calculaEconomiaVetorial(const StaticInstPtr &inst, bool ran);
     void imprimeTracePadrao(const StaticInstPtr &inst, bool ran);
-    void inicializaVariaveis(const StaticInstPtr &inst, bool ran);
-    void extraiDadosDoTrace(const StaticInstPtr &inst, bool ran);
-    void analisaLoops(const StaticInstPtr &inst, bool ran);
+    void imprimeTraceInjetorVHDL(const StaticInstPtr &inst, bool ran);
+    void extraiDadosDoTrace(const StaticInstPtr &inst, bool ran, bool traceArquivo);
+    void monitoraFuncoes(const StaticInstPtr &inst);
+    void inicializaVariaveisDeLatencia();
+    
+    void exploracaoILP();
+    
+    void exploracaoDLP();
+    void armazenaLoopNaCache();
+    void terminoDoLoop();
+    void contabilizaEconomia();
+    void descarteDeLoops();
+    void verificaBranchs();
+    void salvaDadosCmps();
+    void analiseDeDependencias();
+    
+    
+    void leituraDeArquivo();
+    void leituraDeParametros();
+    void analiseDeInterseccao();
     
     void dump();
     virtual void dumpTicks(std::ostream &outs);
@@ -88,6 +105,60 @@ class ExeTracer : public InstTracer
         return new ExeTracerRecord(when, tc,
                 staticInst, pc, macroStaticInst);
     }
+};
+
+class CacheMemory
+{
+  public:
+
+  CacheMemory(int write_delay = 1, int read_delay = 1, int miss_delay = 0) :
+  write_delay(write_delay), 
+  read_delay(read_delay),
+  miss_delay(miss_delay)
+  {
+    number_reads = 0;
+    number_writes = 0;
+    number_misses = 0;
+  }
+
+  long long calculateDelay()
+  {
+    return write_delay * number_writes + read_delay * number_reads + miss_delay * number_misses;
+  }
+
+  int getReads()
+  {
+    return number_reads;
+  }
+
+  int getWrites()
+  {
+    return number_writes;
+  }
+
+  void write()
+  {
+    number_writes++;
+  }
+  
+  void writeRevoked()
+  {
+    number_writes--;
+  }
+
+  void read()
+  {
+    number_reads++;
+  }
+
+  void miss()
+  {
+    number_misses++;
+  }
+
+  private:
+  const int write_delay, read_delay, miss_delay;    //number of cycles to access cache on hit or miss
+  int number_reads, number_writes, number_misses;
 };
 
 } // namespace Trace
